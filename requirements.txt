@@ -1,0 +1,5 @@
+tls-client
+fake-useragent
+colorama
+python-dotenv
+ollama

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordPress Security Audit Report | %DOMAIN%</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+* {margin:0; padding:0; box-sizing:border-box;}
+body {font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif; background:#f8fafc; color:#334155; line-height:1.6;}
+.container {max-width:1600px; margin:0 auto; padding:20px;}
+.header {background:#3b82f6; padding:50px 30px; border-radius:5px; margin-bottom:30px; box-shadow:0 10px 25px rgba(0,0,0,0.1); color:white;}
+.header h1 {font-size:clamp(1.8em,5vw,2.5em); font-weight:700; margin-bottom:12px; letter-spacing:-0.5px;}
+.header p {color:#ffffff; font-size:clamp(1em,2vw,1.1em); max-width:600px;}
+.header-meta {display:flex; gap:clamp(20px,5vw,40px); margin-top:25px; padding-top:25px; border-top:1px solid #475569; font-size:clamp(0.85em,1.5vw,0.95em); color:#ffffff; flex-wrap:wrap;}
+.header-meta span {display:flex; align-items:center; gap:8px;}
+.summary {display:grid; grid-template-columns:repeat(auto-fit, minmax(clamp(140px,20vw,220px), 1fr)); gap:clamp(12px,3vw,20px); margin-bottom:40px;}
+.summary-card {background:white; padding:clamp(20px,4vw,30px); border-radius:5px; border-left:5px solid #3b82f6; box-shadow:0 4px 12px rgba(0,0,0,0.08); transition:transform 0.3s ease, box-shadow 0.3s ease; display:flex; flex-direction:column; justify-content:center;}
+.summary-card:hover {transform:translateY(-5px); box-shadow:0 8px 20px rgba(0,0,0,0.12);}
+.summary-card.critical {border-left-color:#dc2626;}
+.summary-card.warning {border-left-color:#f59e0b;}
+.summary-card.info {border-left-color:#3b82f6;}
+.summary-card .number {font-size:clamp(2em,6vw,2.8em); font-weight:800; color:#1e293b; margin-bottom:8px; display:flex; align-items:center; gap:10px;}
+.summary-card.critical .number {color:#dc2626;}
+.summary-card.warning .number {color:#f59e0b;}
+.summary-card.info .number {color:#3b82f6;}
+.summary-card .label {font-size:clamp(0.8em,1.5vw,0.9em); color:#000000; text-transform:uppercase; letter-spacing:0.8px; font-weight:600;}
+.section {background:white; margin-bottom:35px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); overflow:hidden;}
+.section-header {padding:clamp(20px,3vw,28px); border-bottom:1px solid #e2e8f0; background:linear-gradient(to right, #f8fafc, #ffffff);}
+.section-header h2 {font-size:clamp(1.2em,3vw,1.5em); font-weight:700; color:#1e293b; margin:0; display:flex; align-items:center; gap:12px;}
+.section-controls {padding:clamp(18px,3vw,24px) clamp(18px,3vw,28px); background:#f1f5f9; border-bottom:1px solid #e2e8f0; display:flex; gap:clamp(12px,2vw,18px); flex-wrap:wrap; align-items:center;}
+.filter-group {display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.filter-group label {font-size:clamp(0.85em,1.5vw,0.95em); font-weight:600; color:#475569; white-space:nowrap;}
+select, input {padding:clamp(8px,1.5vw,10px) clamp(12px,2vw,16px); border:1px solid #ffffff; background:white; font-size:clamp(0.85em,1.5vw,0.95em); border-radius:8px; font-family:inherit; min-width:clamp(120px,20vw,160px); transition:all 0.2s ease;}
+select:focus, input:focus {outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1);}
+.section-content {padding:0; overflow-x:auto;}
+.empty-state {text-align:center; padding:clamp(40px,5vw,80px) clamp(20px,3vw,30px); color:#94a3b8; font-size:clamp(0.9em,1.5vw,1.05em);}
+.empty-state i {font-size:3em; margin-bottom:20px; color:#ffffff;}
+table {width:100%; border-collapse:collapse; font-size:clamp(0.85em,1.5vw,1em);}
+thead {background:#f1f5f9; border-top:1px solid #e2e8f0; border-bottom:2px solid #e2e8f0;}
+th {padding:clamp(14px,2vw,18px) clamp(14px,2vw,28px); text-align:left; font-weight:700; color:#1e293b; font-size:clamp(0.8em,1.2vw,0.9em); text-transform:uppercase; letter-spacing:0.5px;}
+td {padding:clamp(14px,2vw,18px) clamp(14px,2vw,28px); border-bottom:1px solid #e2e8f0; vertical-align:top;}
+tbody tr:last-child td {border-bottom:none;}
+tbody tr:hover {background:#f8fafc;}
+.badge {display:inline-flex; align-items:center; gap:6px; padding:clamp(4px,0.8vw,6px) clamp(8px,1.5vw,12px); border-radius:6px; font-size:clamp(0.75em,1vw,0.85em); font-weight:700; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;}
+.badge-critical {background:#fef2f2; color:#dc2626; border:1px solid #fecaca;}
+.badge-high {background:#fffbeb; color:#d97706; border:1px solid #fed7aa;}
+.badge-medium {background:#eff6ff; color:#2563eb; border:1px solid#bfdbfe;}
+.badge-low {background:#f0fdf4; color:#16a34a; border:1px solid#bbf7d0;}
+.badge-type {background:#f8fafc; color:#475569; text-transform:capitalize; border:1px solid#e2e8f0;}
+a {color:#2563eb; text-decoration:none; font-weight:600; word-break:break-word; transition:color 0.2s ease;}
+a:hover {color:#1d4ed8;}
+.vuln-description {font-size:clamp(0.85em,1.2vw,0.95em); color:#475569; line-height:1.6; word-break:break-word; margin-bottom:12px;}
+.vuln-metadata {display:flex; gap:clamp(10px,2vw,20px); font-size:clamp(0.8em,1.2vw,0.9em); color:#64748b; margin-top:12px; flex-wrap:wrap;}
+.vuln-metadata span {display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+.vuln-metadata strong {color:#1e293b;}
+.cvss-details {margin-top:15px; padding:16px; background:#f8fafc; border-radius:8px; font-size:clamp(0.8em,1vw,0.9em); border-left:4px solid #e2e8f0;}
+.cvss-details-row {display:flex; gap:20px; margin-bottom:8px; flex-wrap:wrap;}
+.cvss-details-row:last-child {margin-bottom:0;}
+.cwe-list {margin-top:15px; padding:0; list-style:none;}
+.cwe-item {padding:14px; background:#f8fafc; border-left:4px solid #e2e8f0; margin-bottom:10px; border-radius:6px; font-size:clamp(0.85em,1.2vw,0.95em); transition:background 0.2s ease;}
+.cwe-item:hover {background:#f1f5f9;}
+.cwe-item-code {font-weight:700; color:#1e293b; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
+.cwe-item-name {color:#334155; font-weight:600; margin-bottom:6px;}
+.cwe-item-desc {color:#64748b; font-size:0.95em;}
+.security-status {padding:24px; border-radius:8px; margin-bottom:25px; font-weight:700; display:flex; align-items:center; gap:12px;}
+.security-status.enabled {background:#f0fdf4; color:#16a34a; border-left:5px solid #16a34a;}
+.security-status.disabled {background:#fef2f2; color:#dc2626; border-left:5px solid #dc2626;}
+.security-status.warning {background:#fffbeb; color:#d97706; border-left:5px solid #d97706;}
+.no-results {text-align:center; padding:clamp(30px,5vw,60px) clamp(20px,3vw,30px); background:#f8fafc; color:#94a3b8; font-size:clamp(0.9em,1.5vw,1.05em); border-radius:0 0 12px 12px;}
+.no-results i {font-size:3em; margin-bottom:20px; color:#ffffff;}
+.security-config-grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; padding:28px;}
+.security-config-card {background:#ffffff; border-radius:12px; padding:24px; box-shadow:0 4px 12px rgba(0,0,0,0.08); display:flex; align-items:center; gap:18px; transition:all 0.3s ease; border:1px solid #f1f5f9;}
+.security-config-card:hover {transform:translateY(-5px); box-shadow:0 8px 20px rgba(0,0,0,0.12);}
+.security-config-icon {font-size:1.8em; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:#f1f5f9;}
+.security-config-text {display:flex; flex-direction:column; flex:1;}
+.security-config-text span {font-weight:700; font-size:1em; color:#1e293b;}
+.security-config-text small {font-size:0.9em; color:#64748b; margin-top:4px;}
+.footer {text-align:center; padding:30px 20px; font-size:0.9em; color:#64748b; border-top:1px solid #e2e8f0; margin-top:40px;}
+.footer a {color:#3b82f6; font-weight:600;}
+@media (max-width:768px) {
+.container {padding:15px;}
+.header {padding:30px 20px;}
+.header-meta {flex-direction:column; gap:12px;}
+.section-controls {flex-direction:column; align-items:stretch;}
+.filter-group {width:100%; justify-content:space-between;}
+select,input {width:100%; min-width:auto;}
+.vuln-metadata {flex-direction:column; gap:10px;}
+table {font-size:0.85em;}
+th,td {padding:12px 15px;}
+.security-config-grid {grid-template-columns:1fr; gap:16px; padding:20px;}
+}
+@media (max-width:480px) {
+.summary {grid-template-columns:repeat(2,1fr);}
+.header h1 {font-size:1.6em;}
+.section-header h2 {font-size:1.3em;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1><i class="fas fa-shield-alt"></i> WordPress Security Audit Report</h1>
+<p>Comprehensive security assessment and configuration review</p>
+<div class="header-meta">
+<span><i class="fas fa-calendar-alt"></i> <strong>Generated:</strong> %DATE%</span>
+<span><i class="fas fa-fingerprint"></i> <strong>Report ID:</strong> %REPORT_ID%</span>
+<span><i class="fas fa-fingerprint"></i> <strong>Target:</strong> %DOMAIN%</span>
+</div>
+</div>
+<div class="summary">
+<div class="summary-card info">
+<div class="number"><i class="fas fa-users"></i> <span id="userCount">0</span></div>
+<div class="label">Users</div>
+</div>
+<div class="summary-card info">
+<div class="number"><i class="fas fa-plug"></i> <span id="pluginCount">0</span></div>
+<div class="label">Plugins</div>
+</div>
+<div class="summary-card info">
+<div class="number"><i class="fas fa-palette"></i> <span id="themeCount">0</span></div>
+<div class="label">Themes</div>
+</div>
+<div class="summary-card info">
+<div class="number"><i class="fas fa-code-branch"></i> <span id="versionCount">0</span></div>
+<div class="label">Versions</div>
+</div>
+<div class="summary-card critical">
+<div class="number"><i class="fas fa-bug"></i> <span id="vulnCount">0</span></div>
+<div class="label">Vulnerabilities</div>
+</div>
+</div>
+<div class="section" id="configSection">
+<div class="section-header">
+<h2><i class="fas fa-cogs"></i> Security Configuration</h2>
+</div>
+<div class="section-content" id="configContainer" class="security-config-grid"></div>
+</div>
+<div class="section" id="usersSection">
+<div class="section-header"><h2><i class="fas fa-users"></i> WordPress Users</h2></div>
+<div class="section-content" id="usersContainer"></div>
+</div>
+<div class="section" id="pluginsSection">
+<div class="section-header"><h2><i class="fas fa-plug"></i> Installed Plugins</h2></div>
+<div class="section-content" id="pluginsContainer"></div>
+</div>
+<div class="section" id="themesSection">
+<div class="section-header"><h2><i class="fas fa-palette"></i> Active Themes</h2></div>
+<div class="section-content" id="themesContainer"></div>
+</div>
+<div class="section" id="versionsSection">
+<div class="section-header"><h2><i class="fas fa-code-branch"></i> System Versions</h2></div>
+<div class="section-content" id="versionsContainer"></div>
+</div>
+<div class="section" id="vulnerabilitiesSection">
+<div class="section-header"><h2><i class="fas fa-bug"></i> Security Vulnerabilities</h2></div>
+<div class="section-controls">
+<div class="filter-group">
+<label for="typeFilter"><i class="fas fa-filter"></i> Type:</label>
+<select id="typeFilter">
+<option value="">All Types</option>
+<option value="core">Core</option>
+<option value="plugin">Plugin</option>
+<option value="theme">Theme</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="severityFilter"><i class="fas fa-exclamation-triangle"></i> Severity:</label>
+<select id="severityFilter">
+<option value="">All Severities</option>
+<option value="critical">Critical</option>
+<option value="high">High</option>
+<option value="medium">Medium</option>
+<option value="low">Low</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="searchFilter"><i class="fas fa-search"></i> Search:</label>
+<input type="text" id="searchFilter" placeholder="CVE ID, name, or keyword...">
+</div>
+</div>
+<div class="section-content" id="vulnerabilitiesContainer"></div>
+</div>
+<div class="footer">Report generated using WP-Audit by <a href="https://github.com/Web3-Serializer" target="_blank"><i class="fas fa-external-link-alt"></i> Serializer</a></div>
+<script>
+const scanData=%SCAN_DATA%;
+function init(){updateSummary();renderConfig();renderUsers();renderPlugins();renderThemes();renderVersions();renderVulnerabilities();setupListeners();}
+function updateSummary(){document.getElementById('userCount').textContent=(scanData.wp_users||[]).length;document.getElementById('pluginCount').textContent=(scanData.wp_plugins||[]).length;document.getElementById('themeCount').textContent=(scanData.wp_themes||[]).length;document.getElementById('versionCount').textContent=(scanData.wp_versions||[]).length;document.getElementById('vulnCount').textContent=(scanData.wp_vulnerabilities||[]).length;}
+function renderConfig(){const container=document.getElementById('configContainer');let html='';const configs=[{key:'XmlRPC_enabled',label:'XML-RPC',icon:'fas fa-exchange-alt',type:'danger'},{key:'Register_enabled',label:'User Registration',icon:'fas fa-user-plus',type:'danger'},{key:'AdminAjax_accessible',label:'Admin AJAX',icon:'fas fa-cogs',type:'warning'},{key:'RestAPI_exposed',label:'REST API Exposed',icon:'fas fa-code',type:'warning'}];configs.forEach(c=>{const value=scanData[c.key];const status=value?'disabled':'enabled';const iconClass=value?'fas fa-exclamation-triangle text-red-500':'fas fa-check-circle text-green-500';const text=value?`${c.label}: ENABLED`:`${c.label}: DISABLED`;const desc=value?'Security risk - should be disabled':'Properly secured';html+=`<div class="security-config-card"><div class="security-config-icon"><i class="${iconClass}"></i></div><div class="security-config-text"><span>${text}</span><small>${desc}</small></div></div>`;});if(scanData.exposed_backup_files&&scanData.exposed_backup_files.length>0){html+=`<div class="security-config-card"><div class="security-config-icon"><i class="fas fa-exclamation-triangle text-red-500"></i></div><div class="security-config-text"><span>Found ${scanData.exposed_backup_files.length} exposed backup files</span><small>Security risk - should be removed</small></div></div>`;}if(scanData.directory_listing&&scanData.directory_listing.length>0){html+=`<div class="security-config-card"><div class="security-config-icon"><i class="fas fa-exclamation-triangle text-orange-500"></i></div><div class="security-config-text"><span>Found ${scanData.directory_listing.length} directory listings exposed</span><small>Information disclosure risk</small></div></div>`;}if(scanData.svn_files&&scanData.svn_files.length>0){html+=`<div class="security-config-card"><div class="security-config-icon"><i class="fas fa-exclamation-triangle text-orange-500"></i></div><div class="security-config-text"><span>Found ${scanData.svn_files.length} SVN files exposed</span><small>Information disclosure risk</small></div></div>`;}container.innerHTML=html;}
+function renderTable(data,headers){if(data.length===0){return'<div class="empty-state"><i class="fas fa-inbox"></i><p>No data found</p></div>';}let html='<table><thead><tr>';headers.forEach(h=>html+=`<th>${h}</th>`);html+='</tr></thead><tbody>';data.forEach(row=>{html+='<tr>';headers.forEach(h=>{const key=h.toLowerCase().replace(/\s+/g,'_');html+=`<td>${row[key]||'—'}</td>`;});html+='</tr>';});html+='</tbody></table>';return html;}
+function renderUsers(){const container=document.getElementById('usersContainer');if(scanData.wp_users.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-users"></i><p>No user data available</p></div>';return;}const headers=Object.keys(scanData.wp_users[0]).map(k=>k.replace(/_/g,' ').toUpperCase());container.innerHTML=renderTable(scanData.wp_users,headers);}
+function renderPlugins(){const container=document.getElementById('pluginsContainer');if(scanData.wp_plugins.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-plug"></i><p>No plugins found</p></div>';return;}const headers=Object.keys(scanData.wp_plugins[0]).map(k=>k.replace(/_/g,' ').toUpperCase());container.innerHTML=renderTable(scanData.wp_plugins,headers);}
+function renderThemes(){const container=document.getElementById('themesContainer');if(scanData.wp_themes.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-palette"></i><p>No themes found</p></div>';return;}const headers=Object.keys(scanData.wp_themes[0]).map(k=>k.replace(/_/g,' ').toUpperCase());container.innerHTML=renderTable(scanData.wp_themes,headers);}
+function renderVersions(){const container=document.getElementById('versionsContainer');if(scanData.wp_versions.length===0){container.innerHTML='<div class="empty-state"><i class="fas fa-code-branch"></i><p>No version data available</p></div>';return;}const headers=Object.keys(scanData.wp_versions[0]).map(k=>k.replace(/_/g,' ').toUpperCase());container.innerHTML=renderTable(scanData.wp_versions,headers);}
+function getSeverity(cvss){if(typeof cvss==='object'&&cvss!==null&&cvss.score){const score=parseFloat(cvss.score);if(score>=9)return'critical';if(score>=7)return'high';if(score>=4)return'medium';return'low';}else if(typeof cvss==='string'||typeof cvss==='number'){const score=parseFloat(cvss);if(score>=9)return'critical';if(score>=7)return'high';if(score>=4)return'medium';return'low';}return'low';}
+function formatCvssData(cvss){if(!cvss||typeof cvss!=='object')return null;return cvss;}
+function renderVulnerabilities(vulns=scanData.wp_vulnerabilities){const container=document.getElementById('vulnerabilitiesContainer');if(vulns.length===0){container.innerHTML='<div class="no-results"><i class="fas fa-search"></i><p>No vulnerabilities match your filters</p></div>';return;}let html='<table><thead><tr><th>Type</th><th>Component</th><th>Installed</th><th>Affected</th><th>CVE / Vulnerability</th><th>CVSS</th><th>Date</th><th>Details</th></tr></thead><tbody>';vulns.forEach(vuln=>{const cvssData=formatCvssData(vuln.cvss);const severity=getSeverity(vuln.cvss);const severityIcon=severity==='critical'?'fas fa-fire':severity==='high'?'fas fa-exclamation-triangle':severity==='medium'?'fas fa-exclamation-circle':'fas fa-info-circle';const cveLink=vuln.link?`<a href="${vuln.link}" target="_blank"><i class="fas fa-external-link-alt"></i> ${vuln.cve}</a>`:vuln.cve;let cvssDisplay='—';if(cvssData&&cvssData.score){cvssDisplay=`<span class="badge badge-${severity}"><i class="${severityIcon}"></i> ${cvssData.score}</span>`;}const affectedMin=vuln.affected_versions?.min||'?';const affectedMax=vuln.affected_versions?.max||'?';const affectedRange=affectedMin==='?'&&affectedMax==='?'?'Unknown':`${affectedMin} - ${affectedMax}`;let detailsHtml=`<p class="vuln-description">${vuln.description}</p>`;if(cvssData&&cvssData.vector){detailsHtml+=`<div class="cvss-details"><div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-chart-bar"></i> CVSS v${cvssData.version||'3.1'}</div><div class="cvss-details-row"><div><strong>Vector:</strong> ${cvssData.vector}</div></div>`;if(cvssData.exploitable!==undefined){detailsHtml+=`<div class="cvss-details-row"><div><strong>Exploitability:</strong> ${cvssData.exploitable}</div><div><strong>Impact:</strong> ${cvssData.impact}</div></div>`;}detailsHtml+=`</div>`;}if(vuln.cwe&&vuln.cwe.length>0){detailsHtml+=`<ul class="cwe-list">`;vuln.cwe.forEach(cweItem=>{detailsHtml+=`<li class="cwe-item"><div class="cwe-item-code"><i class="fas fa-bug"></i> ${cweItem.cwe}</div><div class="cwe-item-name">${cweItem.name}</div><div class="cwe-item-desc">${cweItem.description}</div></li>`;});detailsHtml+=`</ul>`;}html+=`<tr><td><span class="badge badge-type">${vuln.type}</span></td><td><strong>${vuln.name}</strong><br><span style="font-size:0.85em;color:#94a3b8;">${vuln.slug}</span></td><td>${vuln.installed_version||'—'}</td><td>${affectedRange}</td><td><strong>${vuln.vuln_name}</strong><br><span style="font-size:0.9em;">${cveLink}</span></td><td>${cvssDisplay}</td><td>${vuln.date||'—'}</td><td>${detailsHtml}</td></tr>`;});html+='</tbody></table>';container.innerHTML=html;}
+function filterVulnerabilities(){const typeFilter=document.getElementById('typeFilter').value;const severityFilter=document.getElementById('severityFilter').value;const searchFilter=document.getElementById('searchFilter').value.toLowerCase();const filtered=scanData.wp_vulnerabilities.filter(vuln=>{const typeMatch=!typeFilter||vuln.type===typeFilter;const severity=getSeverity(vuln.cvss);const severityMatch=!severityFilter||severity===severityFilter;const searchMatch=!searchFilter||vuln.name.toLowerCase().includes(searchFilter)||vuln.cve.toLowerCase().includes(searchFilter)||vuln.vuln_name.toLowerCase().includes(searchFilter)||vuln.description.toLowerCase().includes(searchFilter);return typeMatch&&severityMatch&&searchMatch;});renderVulnerabilities(filtered);}
+function setupListeners(){document.getElementById('typeFilter').addEventListener('change',filterVulnerabilities);document.getElementById('severityFilter').addEventListener('change',filterVulnerabilities);document.getElementById('searchFilter').addEventListener('input',filterVulnerabilities);}
+init();
+</script>
+</body>
+</html>
